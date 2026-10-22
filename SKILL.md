@@ -104,6 +104,102 @@ For every important tensor or data structure, explain as relevant:
 
 Do not assume `C` means channels rather than classes; define symbols in context. Do not assume all models use tensors. When asked “how exactly?”, show the operation, index mapping, equation, or a small numerical example. Avoid vague phrases when mechanics can be traced.
 
+## Architecture-to-Detail Traceability Contract
+
+The overall architecture, source-code analysis, and tensor/data-flow explanation MUST form one traceable structure. Do not present the architecture first and then provide disconnected module details.
+
+### 1. Assign stable module IDs
+
+Before deep-diving into source code, create a verified overall architecture diagram. Assign stable IDs to every major module, such as M1, M2, M3, and M4.
+
+Every module must show, when applicable:
+- Module ID and responsibility.
+- Actual source class/function.
+- Input and output variables.
+- Tensor shapes or data structures.
+- Connections to upstream and downstream modules.
+
+Use actual source variable names wherever possible. If conceptual names are needed, explicitly map them to source variables.
+
+### 2. Build an architecture-to-source mapping table
+
+Before explaining module internals, provide a mapping table:
+
+| Module ID | Architecture role | Source location | Input variable/shape | Output variable/shape | Next module |
+|---|---|---|---|---|---|
+
+Every major architecture component must have a corresponding source location when code is available. If a location cannot be verified, mark it as unverified instead of inventing one.
+
+### 3. Preserve variable identity across all explanations
+
+Maintain a variable lineage table:
+
+| Conceptual name | Actual source variable | Shape/type | Created by | Consumed by |
+|---|---|---|---|---|
+
+Do not silently replace source variable names with generic names such as h, z, or feature.
+
+If a conceptual tensor corresponds to several intermediate source variables, show the complete transformation chain.
+
+### 4. Explain modules in architecture order
+
+For each module, use this structure:
+
+**Module ID and name**
+
+1. **Location in the overall architecture:** Identify the exact node and its upstream/downstream connections.
+2. **Source location:** File path, class, and function.
+3. **Input:** Actual variable names, shapes, and meanings.
+4. **Computation:** The concrete operations in execution order.
+5. **Output:** Actual variable names and resulting shapes.
+6. **Data-flow connection:** Explain exactly which downstream module consumes each output.
+7. **Training behavior:** Explain loss and gradient connections only when relevant.
+8. **Architecture update:** Show a small subgraph highlighting this module and its connections.
+
+Never explain an isolated operation without showing where its inputs originate and where its outputs go.
+
+### 5. Trace branches and convergence explicitly
+
+For branching architectures, show each path separately and identify where paths split or converge.
+
+For example, if a model uses one path to calculate routing weights and another path to generate expert representations, show both paths and the exact operation that combines them.
+
+Do not imply that two paths use the same features merely because they belong to the same conceptual module.
+
+### 6. Align training losses with the architecture
+
+For every loss term, identify:
+- Which module outputs it consumes.
+- Where the loss is calculated.
+- Which branches receive gradients.
+- Whether any tensor is detached or a parameter is frozen.
+- How the loss contributes to the total objective.
+
+Use a loss-to-module mapping table when multiple losses are present.
+
+### 7. Reconcile the architecture with source evidence
+
+After tracing the call path, update the architecture diagram to reflect the actual implementation.
+
+If the paper diagram, initial conceptual diagram, and source implementation differ, explicitly distinguish them. Do not silently force source variables into an assumed architecture.
+
+### 8. Perform a traceability audit before answering
+
+Check that:
+- Every major architecture node is explained.
+- Every detailed module maps back to an architecture node.
+- Every important variable has a traceable origin and downstream consumer.
+- Every major connection is supported by source evidence or marked as an inference.
+- The reader can locate any detail in the overall architecture without guessing.
+
+If the architecture-to-detail mapping is incomplete, fix the mapping before adding more isolated details.
+
+### 9. Teach from the whole to the part and back
+
+First establish the whole architecture. Then explain one module at a time. After each module, return to the overall architecture and show what has now been understood.
+
+The goal is not merely to explain individual operations, but to help the reader understand how those operations form the complete model.
+
 ## Training, inference, and evaluation contract
 
 Keep distinct: forward computation; training-time target assignment/matching (if any); loss; backpropagation and optimizer update; inference decoding/ranking/thresholding/post-processing; offline evaluation.
