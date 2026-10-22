@@ -67,6 +67,7 @@ These are optional guides, not assumptions about the current model:
 - `domains/llm-transformer.md`: only for language models or Transformer-based sequence modeling.
 - `domains/diffusion-models.md`: only for diffusion/noise-based generation.
 - `domains/retrieval-rag.md`: only for retrieval, embedding search, reranking, or retrieval-augmented generation.
+- `domains/multimodal-learning.md`: use only when the current paper or code actually involves multiple modalities, multimodal fusion, cross-modal interaction, or modality-specific learning.
 
 If a method combines domains, consult multiple references only where the combination is evidenced. If no reference fits, use the general workflow and do not force a match.
 
