@@ -14,7 +14,7 @@ required = [
     "domains/object-detection.md", "domains/llm-transformer.md",
     "domains/diffusion-models.md", "domains/retrieval-rag.md",
     "evals/general-tests.md", "evals/detection-tests.md",
-    "evals/llm-tests.md", "scripts/validate_skill.py",
+    "evals/llm-tests.md", "scripts/validate_skill.py","domains/multimodal-learning.md",
 ]
 for rel in required:
     if not (ROOT / rel).is_file():
