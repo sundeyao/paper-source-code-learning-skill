@@ -1,0 +1,6 @@
+interface:
+  display_name: "论文与模型源码学习"
+  short_description: "逐步追踪论文、源码调用链和张量数据流"
+  default_prompt: "检查当前仓库，从整体架构开始，逐步追踪真实源码、张量形状、训练与推理流程。"
+policy:
+  allow_implicit_invocation: true
