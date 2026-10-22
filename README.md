@@ -1,11 +1,18 @@
-# Paper & Model Source-Code Learning Skill
+# Paper & Model Source-Code Learning Skill — V2
 
-面向团队协作的 Codex Skill：逐步阅读深度学习论文、追踪真实源码、解释张量数据流、区分训练与推理，并评估模型迁移方案。
+面向团队复用的通用 Codex Skill：阅读不同领域论文、核实源码、追踪数据流、理解训练/推理与实验，并评估任务迁移。
+
+## V2 改进
+
+- 通用核心不预设任何一种模型架构。
+- 每次研究新项目都重新识别论文、仓库、版本和配置，防止沿用旧项目假设。
+- 目标检测、LLM/Transformer、扩散模型、检索/RAG 分开维护并按需参考。
+- 增加通用论文/实验分析和跨领域测试。
 
 ## 目录
 
 ```text
-paper-source-code-learning/
+paper-source-code-learning-skill-v2/
 ├── SKILL.md
 ├── README.md
 ├── agents/openai.yaml
@@ -13,75 +20,64 @@ paper-source-code-learning/
 │   ├── source-reading.md
 │   ├── tensor-tracing.md
 │   ├── training-inference.md
-│   ├── model-adaptation.md
+│   ├── paper-analysis.md
+│   ├── experiment-analysis.md
 │   └── output-templates.md
-├── evals/test-cases.md
+├── domains/
+│   ├── object-detection.md
+│   ├── llm-transformer.md
+│   ├── diffusion-models.md
+│   └── retrieval-rag.md
+├── evals/
+│   ├── general-tests.md
+│   ├── detection-tests.md
+│   └── llm-tests.md
 └── scripts/validate_skill.py
 ```
 
-## 推荐：团队级安装
+## 安装到 Codex 项目
 
-把整个目录复制到团队仓库根目录的 `.agents/skills/paper-source-code-learning/`，并提交到 Git。成员拉取仓库后，在该工作区打开 Codex 即可共享同一套规则。
+推荐团队共享路径：`your-repo/.agents/skills/paper-source-code-learning/`。把本目录内容复制到该位置并提交 Git。确保最终路径是 `.agents/skills/paper-source-code-learning/SKILL.md`，不要额外嵌套 V2 文件夹。
 
 ### Windows PowerShell
 
-在项目根目录执行，假设 ZIP 已解压到 `$HOME\Downloads\paper-source-code-learning`：
-
 ```powershell
 New-Item -ItemType Directory -Force ".agents\skills" | Out-Null
-Copy-Item -Recurse -Force "$HOME\Downloads\paper-source-code-learning" ".agents\skills\paper-source-code-learning"
+Copy-Item -Recurse -Force `
+  "$HOME\Downloads\paper-source-code-learning-skill-v2\*" `
+  ".agents\skills\paper-source-code-learning"
 ```
 
 ### macOS / Linux
 
 ```bash
-mkdir -p .agents/skills
-cp -R ~/Downloads/paper-source-code-learning .agents/skills/paper-source-code-learning
+mkdir -p .agents/skills/paper-source-code-learning
+cp -R ~/Downloads/paper-source-code-learning-skill-v2/. \
+  .agents/skills/paper-source-code-learning/
 ```
 
-确保最终路径为 `.agents/skills/paper-source-code-learning/SKILL.md`，不要多套一层同名目录。
+按当前 Codex 客户端的 Skill 发现机制，在工作区重新加载/重启 Codex，并通过 `$` 技能选择器或明确名称调用。
 
-## 个人级安装（可选）
+## 更新现有 GitHub 仓库（网页操作）
 
-- macOS / Linux：`~/.agents/skills/paper-source-code-learning/`
-- Windows：`%USERPROFILE%\.agents\skills\paper-source-code-learning\`
+你现有的仓库是 `paper-source-code-learning-skill`，根目录已有旧版文件。
 
-团队共享仍建议使用项目级 `.agents/skills/` 并提交到版本控制。
+1. 下载并解压 V2 ZIP。
+2. 打开现有仓库 `Add file` → `Upload files`。
+3. 进入解压后的 `paper-source-code-learning-skill-v2` 文件夹，选中里面的**全部内容**，上传到仓库根目录；不要把外层 V2 文件夹套进去。
+4. 检查 GitHub 是否将同名文件作为更新处理。若提示冲突或不允许覆盖，逐个打开旧文件，使用铅笔图标编辑替换，或改用 GitHub Desktop / Git 更新。
+5. 确认新增 `domains/` 和三个 `evals/` 文件出现在提交列表中。
+6. 提交说明填写 `Upgrade to domain-neutral paper learning Skill V2`，点击 `Commit changes`。
+7. 检查仓库首页：`SKILL.md` 已更新，`domains/` 已出现，`evals/` 下有三个新测试文件。
 
-## 在 Codex / VS Code 中使用
-
-1. 打开包含 `.agents/skills/` 的项目根目录。
-2. 在 Codex 输入框使用 `$` 技能选择/提及功能，选择 `paper-source-code-learning`；也可以明确要求使用该 Skill。
-3. 如果技能列表没有更新，重启 Codex 或重新打开工作区。
-4. 提供论文、源码仓库、关键文件或配置。Skill 不会自动获得不可访问的源码。
-
-推荐启动提示：
-
-> 使用 `$paper-source-code-learning`。先检查当前仓库和配置，告诉我模型整体执行流程、入口函数、主要模块及关键张量；先不要展开每个模块的内部细节。所有实现结论都要根据当前源码核验。
+**注意：** 上传新文件不会自动删除仓库里不再使用的旧文件。若旧的 `evals/test-cases.md` 仍存在，确认新测试文件已提交后，再手动删除旧文件；不要在新版本未确认完整前删除。
 
 ## 验证
 
-### 静态检查
+在本目录运行 `python scripts/validate_skill.py`。它只检查文件结构、元数据和引用，不会验证 Codex 的实际行为。
 
-在 Skill 根目录运行：
+按 `evals/` 中的提示词测试：通用测试用于所有项目；检测和 LLM 测试只在相应领域运行。建议用一篇检测论文和一篇 LLM 论文分别验收。
 
-```bash
-python scripts/validate_skill.py
-```
+## 维护原则
 
-成功时应显示 `PASS`。
-
-### 行为测试
-
-按 `evals/test-cases.md` 在 Codex 中执行测试。检查是否：
-- 先检查当前仓库和配置；
-- 给出真实文件路径与函数名；
-- 解释张量维度与实际运算；
-- 区分训练匹配与推理后处理；
-- 不编造未确认的实现。
-
-团队建议至少两位成员在不同工作区测试同一组用例。把 Skill 与测试用例一起做代码评审。
-
-## 原则
-
-真实源码优先；按需读取辅助资料；不混用框架/版本；不确定时明确说明。
+通用规则放在 `SKILL.md` 和 `references/`；领域专属知识放在 `domains/`；领域案例放在对应 `evals/`。新增领域时，先添加领域参考和测试，再在主 Skill 的按需选择列表中登记。

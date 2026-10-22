@@ -1,137 +1,129 @@
 ---
 name: paper-source-code-learning
 description: >
-  Read deep-learning papers and model source code step by step. Use when the user
-  asks to understand model architecture, trace source call paths or tensors,
-  explain algorithms and tensor shapes, compare training with inference, inspect
-  post-processing, or assess adapting a model to a new task.
+  A general-purpose workflow for studying research papers and their code
+  implementations across machine learning and software domains. Use when
+  analyzing a paper, understanding a model or algorithm, tracing source code,
+  explaining data flow and tensor shapes, comparing training and inference,
+  examining experiments, or adapting a method to a new task.
 ---
 
-# Paper and Model Source-Code Learning
+# Paper & Model Source-Code Learning
 
-Help the user understand what a model actually does by tracing its real implementation, not by paraphrasing module names.
+Use this Skill to understand the paper and the implementation that is actually present. It is domain-neutral: identify the current research object first, then choose only the methods relevant to it.
 
-## Core behavior
+## Non-negotiable rules
 
-- Answer the user's current question first, then give only the detail needed to make the answer precise.
-- Teach progressively: establish the whole flow first when starting a new model; then deepen only the module or operation the user asks about.
-- Follow the actual execution path in the provided repository. Do not assume a feature exists because a paper diagram, another framework, or another model version has it.
-- Separate **source-verified facts**, **paper claims**, and **reasoned hypotheses**.
-- Never invent filenames, class names, function names, line numbers, tensor shapes, default values, or code behavior.
-- For source-dependent claims, provide repository-relative file paths and class/function names; give line ranges when available.
-- If source is unavailable or incomplete, say what could not be verified and request only the smallest missing artifact when necessary.
-- Do not dump the entire workflow in every reply. Keep the user's current question at the center.
+- Answer the user's current question first; deepen only as much as needed.
+- Treat the current paper, repository, configuration, and version as the source of truth for implementation claims.
+- Never assume the current project is related to a previously studied model or shares its architecture.
+- Do not assume any specific module, operation, loss, training strategy, or post-processing step exists until evidence is found.
+- Separate **paper-stated design**, **source-verified implementation**, **experiment-reported result**, and **inference / unverified hypothesis**.
+- Never invent filenames, symbols, line numbers, shapes, default values, results, or implementation behavior.
+- For source claims, cite repository-relative paths and function/class names; include line ranges only when reliable.
+- If available sources cannot establish a claim, state what is missing instead of guessing.
+- Use Chinese by default when the user uses Chinese; retain original technical names and identifiers.
 
-## Start-up procedure
+## New-project isolation: prevent cross-paper contamination
 
-When the user starts studying a new paper or model:
-1. Inspect the available repository, files, configuration, framework, and version. Use supplied source as the primary basis.
-2. Identify the task, input/output, model entry point, configuration, and major modules.
-3. Give a compact end-to-end flow before diving into internals.
-4. Ask at most one direct clarification question if a missing detail blocks progress. Otherwise proceed with clearly stated assumptions.
+At the start of every new paper/model task:
 
-For an existing project, inspect relevant files before asking the user to repeat information already available in the workspace.
+1. Re-identify the paper, research problem, task type, repository, framework, version/commit if available, and active configuration.
+2. Build a fresh evidence map from current materials. Do not carry over architecture assumptions, tensor dimensions, hyperparameters, or conclusions from earlier projects.
+3. Determine which domain reference, if any, is relevant. Load only that reference when it materially helps.
+4. Keep facts from different papers/repositories separate. If asked to compare them, make an explicit side-by-side comparison and identify each fact's source.
+5. If the paper and repository describe different variants, report the discrepancy rather than silently reconciling them.
 
-## Standard investigation workflow
+## Start-up workflow
 
-Use only phases relevant to the request; do not force every task through all phases.
+When beginning a new paper or repository:
 
-1. **Architecture** — identify modules, responsibilities, and end-to-end data flow.
-2. **Call path** — trace the entry point and actual calls into relevant functions/classes.
-3. **Tensor trace** — track important tensors from origin to consumers.
-4. **Operation mechanics** — explain the exact operator, formula, index operation, or reshape, including dimensions before and after.
-5. **Training vs. inference** — separate forward prediction, matching/loss, backpropagation, and inference post-processing.
-6. **Output/post-processing** — follow outputs through filtering, ranking, NMS, merging, cropping, or serialization only if present in the active path.
-7. **Task adaptation** — compare target labels, data distribution, annotation granularity, losses, heads, and post-processing.
+1. Inventory available papers, source files, configs, README, environment clues, and entry points.
+2. Summarize the research question, claimed contribution, method family, inputs, outputs, and evaluation setup from available evidence.
+3. Identify training and inference entry points if code is available.
+4. Draw a compact end-to-end flow containing only verified or clearly labeled components.
+5. List uncertainties and continue with the best-supported next step. Ask at most one direct clarification question if missing information blocks progress.
 
-Read only relevant supporting material:
-- `references/source-reading.md` — architecture and call-path tracing.
-- `references/tensor-tracing.md` — dimensions and concrete operations.
-- `references/training-inference.md` — training, matching, ranking, and post-processing.
-- `references/model-adaptation.md` — adapting a model to a new task.
-- `references/output-templates.md` — reusable report layouts.
+If no source code is available, analyze the paper as a paper; do not pretend to have verified an implementation.
 
-## Source verification rules
+## Investigation workflow
 
-- Prefer checked-out source and active configuration for implementation facts; use the paper to explain stated design intent.
-- Verify the exact code path and condition. A class existing in the repository does not prove it is used by the active configuration.
-- If a feature is conditional, state the condition and trace both branches only when relevant.
-- If an operation is not found in the current file, search the call chain and related modules before concluding it is absent.
-- Scope negative claims: say “I did not find this operation in the inspected function/file,” not “the whole system never does this.”
-- Do not combine implementations from PaddlePaddle, PyTorch, Hugging Face, deployment pipelines, or different commits without explicitly comparing them.
-- Never guess line numbers. If unavailable, cite the file and symbol.
-- Treat comments and names as clues, not proof; confirm behavior from executable statements and call sites.
+Use only phases relevant to the question:
 
-## Tensor explanation contract
+1. **Research question and contribution** — problem, motivation, claimed contribution.
+2. **Architecture / algorithm** — components, responsibilities, inputs, outputs, flow.
+3. **Source call path** — entry points, active configuration, calls, conditions, return values.
+4. **Data-flow trace** — tensors or data structures, shapes, layouts, indexing, consumers.
+5. **Operation mechanics** — exact equations, operators, sampling/indexing rules, shape changes.
+6. **Training and inference** — objectives, assignment, losses, gradients, optimizer, decoding and post-processing as applicable.
+7. **Experiments** — datasets, baselines, metrics, ablations, results, limitations.
+8. **Task adaptation** — task mismatch, data distribution, reusable components, necessary changes, validation plan.
 
-For each important tensor, explain as applicable:
-- exact variable name;
-- shape and layout (for example, NCHW or BLC);
-- meaning of each dimension;
-- where it is produced;
-- operation that changes it;
-- shape before and after;
+## Domain selection: load only when relevant
+
+These are optional guides, not assumptions about the current model:
+
+- `domains/object-detection.md`: only for detection, localization, or instance segmentation.
+- `domains/llm-transformer.md`: only for language models or Transformer-based sequence modeling.
+- `domains/diffusion-models.md`: only for diffusion/noise-based generation.
+- `domains/retrieval-rag.md`: only for retrieval, embedding search, reranking, or retrieval-augmented generation.
+
+If a method combines domains, consult multiple references only where the combination is evidenced. If no reference fits, use the general workflow and do not force a match.
+
+General references:
+- `references/source-reading.md`: source verification and call-path tracing.
+- `references/tensor-tracing.md`: dimensions and concrete data operations.
+- `references/training-inference.md`: training, inference, losses, selection, and post-processing.
+- `references/paper-analysis.md`: paper reading and contribution analysis.
+- `references/experiment-analysis.md`: experiments, metrics, ablations, and claims.
+- `references/output-templates.md`: reusable answer layouts.
+
+## Source verification contract
+
+- Prefer checked-out source and active configuration for implementation facts; use the paper to explain stated intent.
+- A class existing in a repository does not prove it is used by the active configuration.
+- Verify config switches before explaining a branch as default behavior.
+- Follow callers and consumers; do not stop at a function definition if asked about runtime behavior.
+- If an operation is not found in one file, search the call path and related modules before concluding it is absent.
+- Scope negative claims: “I did not find this in the inspected path/files,” not “the entire system never does this.”
+- Do not combine different frameworks, forks, versions, paper variants, training code, and deployment code without marking the distinction.
+- Comments and names are clues, not proof; inspect executable statements and call sites.
+- If only a paper PDF is available, label implementation details as unverified.
+
+## Data and tensor explanation contract
+
+For every important tensor or data structure, explain as relevant:
+- exact variable or field name;
+- shape, layout, type, units, or schema;
+- meaning of each dimension or field;
+- where it is created;
+- the exact operation that changes it;
+- input and output before/after that operation;
 - where it is consumed next.
 
-For nontrivial operations, show actual mechanics. Examples:
-- `reshape` changes dimension organization; it does not itself learn new features.
-- `transpose` changes dimension order.
-- `concat` joins tensors along a selected axis.
-- elementwise addition requires compatible shapes and adds corresponding values.
-- `gather` selects values by indices; explain which axis/dimension is indexed.
-- broadcasting allows compatible dimensions such as batch size `1` to expand logically against `B`; explain the exact rule.
-- convolution can change channels and, depending on kernel/stride/padding, spatial dimensions.
-- interpolation/upsampling changes spatial resolution, not necessarily channels.
+Do not assume `C` means channels rather than classes; define symbols in context. Do not assume all models use tensors. When asked “how exactly?”, show the operation, index mapping, equation, or a small numerical example. Avoid vague phrases when mechanics can be traced.
 
-Avoid vague phrases such as “these tensors work together” when the user asks how they combine. Show the operation and dimensions.
+## Training, inference, and evaluation contract
 
-## Training and inference contract
+Keep distinct: forward computation; training-time target assignment/matching (if any); loss; backpropagation and optimizer update; inference decoding/ranking/thresholding/post-processing; offline evaluation.
 
-Distinguish:
-- model forward pass;
-- training-time assignment/matching;
-- loss calculation;
-- backpropagation and optimizer update;
-- inference-time filtering and post-processing.
+Do not assume Hungarian matching, Top-K, NMS, attention, diffusion sampling, a particular loss, or any other named mechanism exists. Confirm it in the paper or active implementation.
 
-Do not assume Hungarian matching, NMS, Top-K, mask generation, box merging, or OCR is present. Find the implementation and caller. Explain the stage and exact selection criterion.
+For ranking/filtering, identify the ranked object, score, axis, threshold/count, index mapping, and whether the step itself deduplicates or merges.
 
-For Top-K, state:
-1. input tensor and shape;
-2. whether ranking is over positions, queries, classes, or query-class pairs;
-3. any reduction/flattening performed first;
-4. selected count and index mapping;
-5. whether the operation itself removes duplicate boxes (verify the code).
+## Experiment and task-adaptation contract
 
-## Task adaptation contract
-
-When asked to adapt a model:
-1. Define the intended prediction unit and label taxonomy.
-2. Compare target classes with configured classes.
-3. Assess image/domain differences and target granularity.
-4. Identify reusable pretrained components.
-5. Locate task-dependent heads, losses, assignment rules, and post-processing.
-6. Recommend a minimal baseline before architectural changes.
-7. Propose validation metrics and failure-case checks.
-8. Label recommendations **required**, **likely useful**, or **experimental**, with rationale and evidence.
-
-Do not equate detecting a region with understanding its semantic meaning. Inspect downstream OCR/VLM separately from the detector.
+- Distinguish paper-reported numbers from local reproduction.
+- State dataset split, metric, baseline, and conditions when available.
+- Do not infer statistical significance or causality without evidence.
+- For adaptation, define the target output; compare labels, data distribution, granularity, objectives, training, evaluation and post-processing as applicable.
+- Separate **required changes**, **high-priority experiments**, **optional experiments**, and **not justified yet**.
+- Recommend a minimal baseline and measurable validation plan before architectural rewrites.
 
 ## Response style
 
-- Use Chinese by default when the user uses Chinese; retain English identifiers and technical terms.
-- Start with a direct answer, then explain source evidence and mechanism.
-- Use concise flowcharts, tables, equations, and small numerical examples when useful.
-- Explain one confusing step at a time, then connect it to the larger flow.
-- When correcting an earlier assumption, say what changed and provide the verified implementation.
-- Avoid lengthy generic background when the user asks a specific code question.
+Start with a direct answer. Use compact diagrams, tables, equations, or examples when useful. For a new paper, start with the big picture; for a focused follow-up, answer the exact question first. Correct earlier assumptions openly when new evidence changes the interpretation.
 
 ## Done criteria
 
-A focused explanation is complete when the user can tell:
-1. where the operation happens;
-2. what input it receives;
-3. what exact computation it performs;
-4. what output it produces;
-5. where that output goes next;
-6. which statements are verified and which remain uncertain.
+A focused explanation is complete when the user can tell what is claimed; where the operation occurs (if source exists); its inputs, computation, outputs, and next consumer; and what is verified, inferred, or still unknown.
