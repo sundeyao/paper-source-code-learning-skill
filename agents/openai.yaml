@@ -1,6 +1,6 @@
 interface:
   display_name: "论文与模型源码学习"
-  short_description: "通用论文阅读、源码核验与数据流追踪"
-  default_prompt: "先识别当前论文与仓库，不沿用其他项目的架构假设；再根据当前材料分析整体流程、源码和数据流。"
+  short_description: "论文阅读、源码核验、数据流追踪与交互式架构网页"
+  default_prompt: "先识别当前论文与仓库，不沿用其他项目的架构假设；建立整体架构与源码映射，并在材料足够时生成可点击模块、可追踪数据流的独立 HTML 网页。"
 policy:
   allow_implicit_invocation: true

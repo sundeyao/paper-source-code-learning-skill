@@ -5,7 +5,8 @@ description: >
   implementations across machine learning and software domains. Use when
   analyzing a paper, understanding a model or algorithm, tracing source code,
   explaining data flow and tensor shapes, comparing training and inference,
-  examining experiments, or adapting a method to a new task.
+  examining experiments, adapting a method to a new task, or generating an
+  interactive HTML architecture explorer with clickable modules and traceable data flow.
 ---
 
 # Paper & Model Source-Code Learning
@@ -67,7 +68,7 @@ These are optional guides, not assumptions about the current model:
 - `domains/llm-transformer.md`: only for language models or Transformer-based sequence modeling.
 - `domains/diffusion-models.md`: only for diffusion/noise-based generation.
 - `domains/retrieval-rag.md`: only for retrieval, embedding search, reranking, or retrieval-augmented generation.
-- `domains/multimodal-learning.md`: use only when the current paper or code actually involves multiple modalities, multimodal fusion, cross-modal interaction, or modality-specific learning.
+- `domains/multimodal-learning.md`: only when the current paper or code actually involves multiple modalities, multimodal fusion, cross-modal interaction, or modality-specific learning.
 
 If a method combines domains, consult multiple references only where the combination is evidenced. If no reference fits, use the general workflow and do not force a match.
 
@@ -104,101 +105,107 @@ For every important tensor or data structure, explain as relevant:
 
 Do not assume `C` means channels rather than classes; define symbols in context. Do not assume all models use tensors. When asked “how exactly?”, show the operation, index mapping, equation, or a small numerical example. Avoid vague phrases when mechanics can be traced.
 
+
+
 ## Architecture-to-Detail Traceability Contract
 
-The overall architecture, source-code analysis, and tensor/data-flow explanation MUST form one traceable structure. Do not present the architecture first and then provide disconnected module details.
+The overall architecture, source-code analysis, tensor explanations, and interactive webpage MUST form one traceable structure. Do not present an architecture diagram followed by disconnected module descriptions.
 
-### 1. Assign stable module IDs
+### 1. Stable module IDs
+Assign stable IDs (M1, M2, M3, ...) to major modules. Use the same IDs in the architecture diagram, source mapping table, detailed explanations, JSON configuration, and webpage. Do not silently renumber modules when refining the analysis.
 
-Before deep-diving into source code, create a verified overall architecture diagram. Assign stable IDs to every major module, such as M1, M2, M3, and M4.
+### 2. Architecture-to-source mapping
+Before deep dives, provide or record a mapping table:
 
-Every module must show, when applicable:
-- Module ID and responsibility.
-- Actual source class/function.
-- Input and output variables.
-- Tensor shapes or data structures.
-- Connections to upstream and downstream modules.
+| Module ID | Architecture role | Source location | Inputs | Outputs | Next consumer | Evidence status |
+|---|---|---|---|---|---|---|
 
-Use actual source variable names wherever possible. If conceptual names are needed, explicitly map them to source variables.
+Use actual file paths, class/function names, and source variable names when verified. If code is unavailable, label the source location as unavailable rather than inventing it.
 
-### 2. Build an architecture-to-source mapping table
+### 3. Variable lineage
+For every important variable, trace:
+- where it is created;
+- its actual shape/type/schema;
+- each concrete operation that changes it;
+- its output variable and resulting shape/type;
+- the module/function that consumes it next.
 
-Before explaining module internals, provide a mapping table:
+Map conceptual names to actual source variables explicitly. Never silently substitute generic names for implementation identifiers.
 
-| Module ID | Architecture role | Source location | Input variable/shape | Output variable/shape | Next module |
-|---|---|---|---|---|---|
+### 4. Explain in architecture order
+For each module:
+1. Locate it in the whole architecture.
+2. Give its source location and evidence status.
+3. Explain inputs and their origin.
+4. Explain operations in execution order.
+5. Explain outputs and shape/type changes.
+6. Identify the exact downstream consumer.
+7. Explain training/loss/gradient behavior only when relevant and verified.
+8. Return to the whole architecture and show which path has been explained.
 
-Every major architecture component must have a corresponding source location when code is available. If a location cannot be verified, mark it as unverified instead of inventing one.
+### 5. Branches and convergence
+Show separate branches separately. Explicitly identify where they split and converge, which variables flow along each edge, and whether the connection is data flow or training-only flow. Do not collapse materially different branches into a vague “feature” node.
 
-### 3. Preserve variable identity across all explanations
+### 6. Audit
+Before finishing, check that every major architecture node has details, every detailed module maps back to a node, and every important edge/variable has a source or an explicit evidence status. If the mapping is incomplete, repair it before adding more isolated detail.
 
-Maintain a variable lineage table:
+## Interactive Architecture Explorer Contract
 
-| Conceptual name | Actual source variable | Shape/type | Created by | Consumed by |
-|---|---|---|---|---|
+For a new-paper learning workflow, create an interactive architecture webpage when local file creation is available and the user has supplied enough paper/source material to establish at least a preliminary architecture. Do not require the user to repeat this request. For focused follow-up questions, update the existing explorer only when it materially helps.
 
-Do not silently replace source variable names with generic names such as h, z, or feature.
+### Required deliverables
 
-If a conceptual tensor corresponds to several intermediate source variables, show the complete transformation chain.
+Create a paper-specific output folder, for example `artifacts/<paper-slug>/`, containing:
 
-### 4. Explain modules in architecture order
+- `paper_network_explorer.html`: a standalone, locally openable interactive webpage.
+- `paper_model_config.json`: the editable model/architecture configuration used by the webpage.
+- Optionally, `architecture-evidence.md`: a compact evidence ledger linking major nodes and edges to paper sections or source locations.
 
-For each module, use this structure:
+Use the reusable template at `templates/paper_network_explorer.html` and the build helper `scripts/build_explorer.py`. Do not recreate the UI from scratch unless the template cannot meet a stated requirement.
 
-**Module ID and name**
+### Webpage interaction requirements
 
-1. **Location in the overall architecture:** Identify the exact node and its upstream/downstream connections.
-2. **Source location:** File path, class, and function.
-3. **Input:** Actual variable names, shapes, and meanings.
-4. **Computation:** The concrete operations in execution order.
-5. **Output:** Actual variable names and resulting shapes.
-6. **Data-flow connection:** Explain exactly which downstream module consumes each output.
-7. **Training behavior:** Explain loss and gradient connections only when relevant.
-8. **Architecture update:** Show a small subgraph highlighting this module and its connections.
+The generated page must, where supported by the template:
 
-Never explain an isolated operation without showing where its inputs originate and where its outputs go.
+- Show the whole model/algorithm as a directed graph with stable module IDs (M1, M2, ...).
+- Let users click a module to see its purpose, exact source location, inputs, outputs, data types/shapes, computation steps, upstream/downstream modules, and verification status.
+- Highlight adjacent upstream/downstream nodes and edges when a module is selected.
+- Search modules, variables, and source identifiers.
+- Distinguish ordinary data-flow edges from training/loss edges.
+- Allow navigation from a module detail to its upstream/downstream modules.
+- Import/export the JSON configuration for later edits and updates.
+- Work as a local HTML file without a backend or external network dependency.
 
-### 5. Trace branches and convergence explicitly
+### Architecture and evidence rules
 
-For branching architectures, show each path separately and identify where paths split or converge.
+- Build nodes and edges from the current paper and repository only; never reuse EMOE, PP-DocLayoutV3, or another project's assumed architecture as facts for a new project.
+- Preserve stable module IDs and source variable names across the diagram, detail panels, tables, and explanations.
+- Label every module's evidence status, such as `source-verified`, `paper-described`, `inferred`, or `unverified`.
+- Include exact repository-relative paths and class/function names when verified. Never invent source paths, tensor shapes, call relationships, or loss connections.
+- When only the paper is available, still create a paper-level diagram if useful, but mark implementation locations and unverified shapes clearly as unavailable or unverified.
+- Every edge must have a justified meaning. Label important edges with the variable/data being passed and its shape when known.
+- Separate training-only flows (loss, matching, gradient/teacher paths) from inference/data flows where the graph supports it.
+- If a module has multiple inputs or outputs, show each relevant variable as an input/output row; do not collapse materially different branches into a vague “features” label.
+- If the graph is too large, create a high-level graph plus linked subgraphs or grouped modules. Do not omit important branches solely to make the diagram small.
 
-For example, if a model uses one path to calculate routing weights and another path to generate expert representations, show both paths and the exact operation that combines them.
+### Build workflow
 
-Do not imply that two paths use the same features merely because they belong to the same conceptual module.
+1. Inspect the actual paper, source files, configuration and runtime entry points.
+2. Draft a module/edge inventory and map each node to source evidence.
+3. Create `paper_model_config.json` following `references/model-config-schema.md`.
+4. Choose clear, non-overlapping node coordinates and make the graph readable. Use the provided node types where appropriate: `input`, `feature`, `router`, `fusion`, `prediction`, and `loss`; other types may be used if needed.
+5. Run `python scripts/build_explorer.py --config <config-path> --output <html-path>` from the Skill package or adapt the paths to the actual workspace.
+6. Validate that the HTML builds, the JSON parses, all edge endpoints exist, module IDs are unique, and each major module has a status and data-flow explanation.
+7. Open the resulting HTML in a browser when the environment allows; otherwise state that structural validation was performed but browser interaction was not visually tested.
+8. Return links/paths to both files and explain how to open the HTML and update the JSON. Do not claim the diagram is fully source-verified if any nodes remain inferred or unverified.
 
-### 6. Align training losses with the architecture
+### Progressive refinement
 
-For every loss term, identify:
-- Which module outputs it consumes.
-- Where the loss is calculated.
-- Which branches receive gradients.
-- Whether any tensor is detached or a parameter is frozen.
-- How the loss contributes to the total objective.
+Create a useful first version after the initial architecture/source inventory, marking unknowns rather than waiting for every detail. As the user studies modules, update the same JSON and regenerate the HTML so that newly verified shapes, source locations, operations, and data-flow links appear in the same architecture. Do not silently renumber established modules; update the evidence status instead.
 
-Use a loss-to-module mapping table when multiple losses are present.
+### Fallback
 
-### 7. Reconcile the architecture with source evidence
-
-After tracing the call path, update the architecture diagram to reflect the actual implementation.
-
-If the paper diagram, initial conceptual diagram, and source implementation differ, explicitly distinguish them. Do not silently force source variables into an assumed architecture.
-
-### 8. Perform a traceability audit before answering
-
-Check that:
-- Every major architecture node is explained.
-- Every detailed module maps back to an architecture node.
-- Every important variable has a traceable origin and downstream consumer.
-- Every major connection is supported by source evidence or marked as an inference.
-- The reader can locate any detail in the overall architecture without guessing.
-
-If the architecture-to-detail mapping is incomplete, fix the mapping before adding more isolated details.
-
-### 9. Teach from the whole to the part and back
-
-First establish the whole architecture. Then explain one module at a time. After each module, return to the overall architecture and show what has now been understood.
-
-The goal is not merely to explain individual operations, but to help the reader understand how those operations form the complete model.
+If file creation or Python execution is unavailable, provide the validated JSON configuration and explain how to use the included template/build helper. If no source code is available, do not invent code details; make the evidence level explicit.
 
 ## Training, inference, and evaluation contract
 

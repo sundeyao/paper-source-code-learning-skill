@@ -13,10 +13,13 @@ required = [
     "references/experiment-analysis.md", "references/output-templates.md",
     "domains/object-detection.md", "domains/llm-transformer.md",
     "domains/diffusion-models.md", "domains/retrieval-rag.md",
+    "domains/multimodal-learning.md",
+    "references/model-config-schema.md",
+    "templates/paper_network_explorer.html",
+    "examples/model-config.example.json", "examples/paper_network_explorer-demo.html",
     "evals/general-tests.md", "evals/detection-tests.md",
-    "evals/llm-tests.md",
-    "domains/multimodal-learning.md", 
-    "scripts/validate_skill.py",
+    "evals/llm-tests.md", "evals/interactive-architecture-tests.md",
+    "scripts/validate_skill.py", "scripts/build_explorer.py",
 ]
 for rel in required:
     if not (ROOT / rel).is_file():
@@ -36,7 +39,7 @@ else:
         if not re.search(r"(?m)^description:\s*\S", front):
             errors.append("Missing description field.")
 
-for ref in re.findall(r"`((?:references|domains)/[^`]+\.md)`", skill):
+for ref in re.findall(r"`((?:references|domains|templates|scripts)/[^`]+\.(?:md|html|py))`", skill):
     if not (ROOT / ref).is_file():
         errors.append(f"SKILL.md references missing file: {ref}")
 
@@ -46,6 +49,6 @@ if errors:
         print(" - " + err)
     sys.exit(1)
 
-print("PASS: V2 Skill structure, front matter, and referenced files look valid.")
+print("PASS: Skill package structure, front matter, and referenced files look valid.")
 print(f"Checked: {ROOT}")
 

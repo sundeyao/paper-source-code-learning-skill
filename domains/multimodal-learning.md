@@ -1,122 +1,27 @@
-# 领域参考：多模态学习（Multimodal Learning）
+\
+# Domain Guide: Multimodal Learning
 
-**使用条件：** 仅当当前论文或源码实际涉及两种或以上模态的信息建模、融合或联合学习时使用。本文件是分析指南，不代表每篇多模态论文都包含下列全部模块。
+Use only when the current paper or implementation actually uses two or more modalities or cross-modal information.
 
-## 一、识别研究对象
+## Identify the task and modalities
+- Name the actual modalities and final prediction/task.
+- Determine whether inputs are raw data, pretrained features, or embeddings.
+- Verify data alignment, sequence lengths, padding/masks, feature dimensions, and missing-modality handling from the data pipeline.
 
-开始分析前，确认当前论文的具体任务、输入模态、输出目标和模型架构。
+## Trace each modality separately
+For each modality, record input variable/schema, preprocessing, encoder, output variable/shape, and next consumer. Do not assume modalities share dimensions, time steps, or encoders.
 
-常见模态包括：
-- 文本（Text）
-- 图像（Image）
-- 视频（Video）
-- 音频（Audio）
-- 传感器或其他结构化信号
+## Analyze interaction and fusion
+Use the actual implementation to determine whether it uses concatenation, addition, weighted fusion, cross-modal attention, gating, routing, mixture-of-experts, or another method. Record input/output shapes, projection and normalization steps, broadcast axes, and the exact operation.
 
-需要明确：论文使用哪些模态、每种模态如何表示，以及各模态在预测任务中承担什么作用。
+## Analyze modality-specific experts and routing (if present)
+Trace router input, score calculation, normalization, expert selection/weights, expert outputs, aggregation, and downstream consumers. Do not infer a router or expert structure from the paper title alone.
 
-## 二、追踪各模态的特征提取
+## Analyze losses and distillation (if present)
+For every loss, record the prediction/feature it consumes, labels or teacher targets, formula, weight, call site, gradient path, and any detach/frozen parameters. Separate training-only branches from inference.
 
-对每种模态分别建立数据流：
+## Experiments
+Inspect unimodal baselines, modality ablations, fusion ablations, routing/experts ablations, distillation ablations, robustness to missing/noisy modalities, and reported metrics only where available.
 
-输入数据 → 预处理 → 特征提取器 → 模态特征 → 下游模块
-
-需要核实：
-- 每种模态的输入格式、数据类型和形状；
-- 使用的编码器及其实际调用位置；
-- 编码器输出的维度和语义；
-- 不同模态的特征是否具有相同维度；
-- 是否进行了投影、归一化、对齐或降维；
-- 不同模态是否共享参数，还是分别使用独立网络。
-
-不要假设文本、图像和音频的特征天然处于同一表示空间。
-
-## 三、分析模态交互与融合
-
-根据源码实际实现，识别所采用的融合方法，例如：
-
-- 早期融合（Early Fusion）
-- 中间层融合（Intermediate Fusion）
-- 后期融合（Late Fusion）
-- 拼接（Concatenation）
-- 加权求和（Weighted Sum）
-- 跨模态注意力（Cross-modal Attention）
-- 动态路由或专家机制（Dynamic Routing / Mixture of Experts）
-
-对每个实际使用的融合操作，记录：
-
-1. 输入变量及其形状；
-2. 融合前的投影、对齐或归一化；
-3. 具体运算及对应维度；
-4. 融合后特征的形状；
-5. 融合结果被哪个模块继续使用。
-
-如果模型使用动态路由或专家机制，还应追踪路由分数如何计算、如何归一化、如何选择或加权专家，以及专家输出如何聚合。
-
-## 四、分析模态专有信息与跨模态信息
-
-需要区分两个问题：
-
-- **模态专有信息：** 某一模态独有、对当前任务有用的特征。
-- **跨模态信息：** 不同模态之间可以相互补充或关联的信息。
-
-核实模型如何提取、保留或融合这些信息。不要仅凭模块名称断言模型已经解决了模态冲突、信息丢失或模态不平衡问题。
-
-## 五、分析蒸馏与辅助监督
-
-仅当论文或源码确实采用相关方法时，才分析：
-
-- 教师模型与学生模型；
-- 单模态分支与融合分支；
-- 蒸馏目标及其输入输出；
-- 特征蒸馏、Logits 蒸馏或其他蒸馏形式；
-- 主任务损失与辅助损失；
-- 各损失的权重、计算位置及梯度传播路径。
-
-对每项损失，应明确其监督对象、计算公式、权重和参与训练的参数。
-
-## 六、训练与推理的数据流
-
-分别追踪训练和推理：
-
-**训练阶段**
-- 各模态数据如何加载、配对和预处理；
-- 是否存在缺失模态、模态丢弃或数据增强；
-- 哪些分支参与前向计算；
-- 各项损失如何计算；
-- 梯度如何传回各模态编码器、融合模块和预测头。
-
-**推理阶段**
-- 实际需要哪些模态；
-- 各模态是否必须同时提供；
-- 是否执行动态路由、加权融合或额外后处理；
-- 最终输出如何生成。
-
-不能假设训练和推理使用完全相同的数据路径。
-
-## 七、实验与消融分析
-
-重点核查：
-- 各模态单独使用时的结果；
-- 多模态融合后的结果；
-- 去除某个模态或模块后的结果；
-- 动态路由、蒸馏或辅助损失的消融；
-- 不同模态组合下的表现；
-- 对缺失模态、噪声或模态质量变化的鲁棒性（如果论文有相关实验）。
-
-区分论文报告结果与本地复现结果，不要从单个实验直接推断模块的因果贡献。
-
-## 八、源码输出格式
-
-| 分析项目 | 必须记录的内容 |
-|---|---|
-| 模态输入 | 变量名、数据类型、形状 |
-| 特征编码 | 编码器位置、输入输出、维度变化 |
-| 模态交互 | 具体运算、输入输出形状 |
-| 动态路由 | 路由分数、选择或加权规则（若有） |
-| 辅助监督 | 损失项、权重、梯度路径（若有） |
-| 训练流程 | 数据流、前向计算、反向传播 |
-| 推理流程 | 实际调用路径与最终输出 |
-| 实验结果 | 指标、消融、局限性 |
-
-所有实现结论都必须以当前论文、仓库和配置为依据。未核实的部分应标记为“待验证”。
+## Architecture webpage
+When the interactive explorer is generated, represent modality-specific paths as distinct nodes or branches. Show where they split and converge, label cross-modal edges with actual variables, and mark source-unverified paths explicitly.

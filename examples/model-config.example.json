@@ -1,0 +1,90 @@
+{
+  "title": "示例：可交互网络结构",
+  "subtitle": "这是用于测试生成流程的两模块示例，请替换为当前论文的真实架构。",
+  "sourceNote": "测试示例，不代表任何真实论文或源码实现。",
+  "modules": [
+    {
+      "id": "input",
+      "code": "M1",
+      "title": "输入",
+      "short": "Input",
+      "type": "input",
+      "x": 70,
+      "y": 160,
+      "w": 170,
+      "h": 100,
+      "summary": "接收输入数据。",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "x",
+          "shape": "待核实",
+          "meaning": "输入数据"
+        }
+      ],
+      "steps": [
+        "读取输入。",
+        "具体预处理步骤需要根据当前源码核实。"
+      ],
+      "sourceFiles": [
+        "待源码定位"
+      ],
+      "upstream": [],
+      "downstream": [
+        "model"
+      ],
+      "status": "unverified",
+      "caveats": [
+        "仅用于验证模板，不属于真实模型。"
+      ]
+    },
+    {
+      "id": "model",
+      "code": "M2",
+      "title": "处理模块",
+      "short": "Processing",
+      "type": "feature",
+      "x": 370,
+      "y": 160,
+      "w": 190,
+      "h": 110,
+      "summary": "示例处理模块。",
+      "inputs": [
+        {
+          "name": "x",
+          "shape": "待核实",
+          "meaning": "来自 M1"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "y",
+          "shape": "待核实",
+          "meaning": "输出数据"
+        }
+      ],
+      "steps": [
+        "在真实项目中替换为经源码核实的运算。"
+      ],
+      "sourceFiles": [
+        "待源码定位"
+      ],
+      "upstream": [
+        "input"
+      ],
+      "downstream": [],
+      "status": "unverified",
+      "caveats": [
+        "仅用于验证模板，不属于真实模型。"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "input",
+      "to": "model",
+      "label": "x → y",
+      "type": "data"
+    }
+  ]
+}
